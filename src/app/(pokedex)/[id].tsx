@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -16,6 +16,7 @@ import {
   formatWeight,
   getOfficialArtworkUrl,
 } from '@/utils/pokemon';
+import { getPokemonTypeColor } from '@/utils/pokemon-colors';
 
 export default function PokemonDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -53,14 +54,26 @@ export default function PokemonDetailsScreen() {
   // ── Renderização Principal ──
 
   const artworkUrl = getOfficialArtworkUrl(pokemon.id);
+  const primaryType = pokemon.types[0]?.type.name ?? 'normal';
+  const typeColor = getPokemonTypeColor(primaryType);
 
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={{ paddingBottom: insets.bottom + Spacing.four }}
     >
-      {/* ── Imagem Principal ── */}
-      <View style={[styles.imageContainer, { backgroundColor: theme.backgroundElement }]}>
+      {/* Colore o header da Stack Navigator com o tipo do Pokémon */}
+      <Stack.Screen
+        options={{
+          headerStyle: { backgroundColor: typeColor },
+          headerTintColor: '#FFFFFF',
+          headerTitle: formatPokemonName(pokemon.name),
+          headerShadowVisible: false,
+        }}
+      />
+
+      {/* ── Imagem Principal (hero com cor do tipo) ── */}
+      <View style={[styles.imageContainer, { backgroundColor: typeColor }]}>
         <Image
           source={{ uri: artworkUrl }}
           style={styles.image}
