@@ -1,2 +1,3 @@
-// services/pokeApi/index.ts — será preenchido na Etapa 3
-export {};
+export * from './client';
+export * from './endpoints';
+export * from './pokemon';
