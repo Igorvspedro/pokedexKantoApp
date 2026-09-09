@@ -207,6 +207,7 @@ const styles = StyleSheet.create({
   columnWrapper: {
     gap: Spacing.two,
     paddingHorizontal: Spacing.two,
+    marginBottom: Spacing.two,
   },
   stateText: {
     fontSize: 16,
