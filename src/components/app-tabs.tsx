@@ -1,5 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { useColorScheme } from 'react-native';
 
@@ -45,7 +45,7 @@ export default function AppTabs() {
           name="filtro-regiao"
           options={{
             title: 'Regiões',
-            tabBarIcon: ({ color }) => <SymbolView name="globe" tintColor={color} size={24} />,
+            tabBarIcon: ({ color }) => <Ionicons name="globe-outline" color={color} size={24} />,
           }}
           listeners={{
             tabPress: (e) => {
@@ -60,7 +60,7 @@ export default function AppTabs() {
           name="filtro-tipo"
           options={{
             title: 'Tipos',
-            tabBarIcon: ({ color }) => <SymbolView name="tag.fill" tintColor={color} size={24} />,
+            tabBarIcon: ({ color }) => <Ionicons name="pricetag-outline" color={color} size={24} />,
           }}
           listeners={{
             tabPress: (e) => {
@@ -75,7 +75,7 @@ export default function AppTabs() {
           name="filtro-classificacao"
           options={{
             title: 'Classificação',
-            tabBarIcon: ({ color }) => <SymbolView name="star.fill" tintColor={color} size={24} />,
+            tabBarIcon: ({ color }) => <Ionicons name="star-outline" color={color} size={24} />,
           }}
           listeners={{
             tabPress: (e) => {
