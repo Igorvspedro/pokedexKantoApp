@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -60,6 +61,7 @@ function ListFooter({ isFetchingNextPage, hasNextPage, total, isSearching }: Lis
 export default function PokedexScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   // ── Pesquisa ──
   const [searchTerm, setSearchTerm] = useState('');
@@ -81,6 +83,7 @@ export default function PokedexScreen() {
       <PokemonCard
         id={item.id}
         name={item.name}
+        onPress={() => router.push(`/(pokedex)/${item.id}` as any)}
       />
     ),
     []
