@@ -61,6 +61,15 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.three,
     padding: Spacing.two,
     gap: Spacing.one,
+    // Sombra avermelhada na web / iOS
+    shadowColor: '#E3350D',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    // Relevo via elevação no Android associado por default a cor shadow
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(227, 53, 13, 0.1)', // Linha sutil vermelha para dar o contorno suave
   },
   image: {
     width: '100%',
