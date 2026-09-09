@@ -3,6 +3,8 @@ import { useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PokemonStats } from '@/components/pokemon/PokemonStats';
+import { PokemonTypeBadge } from '@/components/pokemon/PokemonTypeBadge';
 import { Spacing } from '@/constants/theme';
 import { usePokemonDetails } from '@/hooks/pokemon/use-pokemon-details';
 import { useTheme } from '@/hooks/use-theme';
@@ -81,14 +83,12 @@ export default function PokemonDetailsScreen() {
           </Text>
         </View>
 
-        {/* ── Tipos (Básico por enquanto - será melhorado na Etapa 12) ── */}
+        {/* ── Tipos ── */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Tipos</Text>
           <View style={styles.row}>
             {pokemon.types.map((t) => (
-              <View key={t.type.name} style={[styles.badge, { backgroundColor: theme.backgroundElement }]}>
-                <Text style={{ color: theme.text }}>{t.type.name.toUpperCase()}</Text>
-              </View>
+              <PokemonTypeBadge key={t.type.name} type={t.type.name} />
             ))}
           </View>
         </View>
@@ -119,17 +119,13 @@ export default function PokemonDetailsScreen() {
           ))}
         </View>
 
-        {/* ── Estatísticas (Básico - será melhorado na Etapa 13) ── */}
+        {/* ── Estatísticas ── */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Estatísticas Base</Text>
-          {pokemon.stats.map((s) => (
-            <View key={s.stat.name} style={styles.statRow}>
-              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
-                {s.stat.name.toUpperCase()}
-              </Text>
-              <Text style={[styles.statValue, { color: theme.text }]}>{s.base_stat}</Text>
-            </View>
-          ))}
+          <PokemonStats
+            stats={pokemon.stats}
+            primaryType={pokemon.types[0]?.type.name || 'normal'}
+          />
         </View>
       </View>
     </ScrollView>
