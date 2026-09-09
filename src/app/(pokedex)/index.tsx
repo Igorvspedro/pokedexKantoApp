@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -11,8 +11,11 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PokemonCard } from '@/components/pokemon/PokemonCard';
+import { SearchBar } from '@/components/ui/SearchBar';
 import { Spacing } from '@/constants/theme';
 import { PokemonListEntry, usePokemons } from '@/hooks/pokemon/use-pokemons';
+import { useSearchPokemons } from '@/hooks/pokemon/use-search-pokemons';
+import { useDebounce } from '@/hooks/use-debounce';
 import { useTheme } from '@/hooks/use-theme';
 
 const NUM_COLUMNS = 2;
@@ -23,10 +26,13 @@ interface ListFooterProps {
   isFetchingNextPage: boolean;
   hasNextPage: boolean;
   total: number;
+  isSearching: boolean;
 }
 
-function ListFooter({ isFetchingNextPage, hasNextPage, total }: ListFooterProps) {
+function ListFooter({ isFetchingNextPage, hasNextPage, total, isSearching }: ListFooterProps) {
   const theme = useTheme();
+
+  if (isSearching) return null; // Não há "próxima página" na pesquisa que já carrega todos logotipados
 
   if (isFetchingNextPage) {
     return (
@@ -36,7 +42,6 @@ function ListFooter({ isFetchingNextPage, hasNextPage, total }: ListFooterProps)
     );
   }
 
-  // Mostra "fim da lista" somente quando todos os Pokémon foram carregados
   if (!hasNextPage && total > 0) {
     return (
       <View style={styles.footer}>
@@ -55,107 +60,119 @@ function ListFooter({ isFetchingNextPage, hasNextPage, total }: ListFooterProps)
 export default function PokedexScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const {
-    pokemons,
-    totalCount,
-    isLoading,
-    isFetchingNextPage,
-    error,
-    hasNextPage,
-    fetchNextPage,
-    refetch,
-  } = usePokemons();
 
-  // useCallback evita recriar a função a cada render da tela
+  // ── Pesquisa ──
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedTerm = useDebounce(searchTerm, 400);
+  const isSearching = debouncedTerm.length > 0;
+
+  // ── Hooks de dados ──
+  const listQuery = usePokemons();
+  const searchQuery = useSearchPokemons(debouncedTerm);
+
+  // Seleciona a fonte de dados com base na pesquisa
+  const activePokemons = isSearching ? searchQuery.pokemons : listQuery.pokemons;
+  const isLoading = isSearching ? searchQuery.isLoading : listQuery.isLoading;
+  const error = isSearching ? searchQuery.error : listQuery.error;
+  const refetch = isSearching ? () => { } : listQuery.refetch; // Search é estático depois do primeiro fetch na sessão
+
   const renderItem = useCallback<ListRenderItem<PokemonListEntry>>(
     ({ item }) => (
       <PokemonCard
         id={item.id}
         name={item.name}
-      // onPress será conectado à navegação na Etapa 10
       />
     ),
     []
   );
 
   const handleEndReached = useCallback(() => {
-    // Dupla proteção: hasNextPage E não estar já buscando
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+    if (isSearching) return; // Pesquisa não tem paginação
+    if (listQuery.hasNextPage && !listQuery.isFetchingNextPage) {
+      listQuery.fetchNextPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [isSearching, listQuery]);
 
   const keyExtractor = useCallback((item: PokemonListEntry) => String(item.id), []);
 
-  // ── Estado: carregando a primeira página ──
-  if (isLoading) {
-    return (
-      <View style={[styles.center, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.textSecondary} />
-        <Text style={[styles.stateText, { color: theme.textSecondary }]}>
-          Carregando Pokémon...
-        </Text>
-      </View>
-    );
-  }
-
-  // ── Estado: erro ──
-  if (error) {
-    return (
-      <View style={[styles.center, { backgroundColor: theme.background }]}>
-        <Text style={[styles.stateText, { color: theme.text }]}>
-          Ops! Não foi possível carregar os Pokémon.
-        </Text>
-        <Text style={[styles.stateSubtext, { color: theme.textSecondary }]}>{error.message}</Text>
-        <Pressable
-          onPress={() => refetch()}
-          style={({ pressed }) => [
-            styles.retryButton,
-            { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
-          ]}
-        >
-          <Text style={[styles.retryText, { color: theme.text }]}>Tentar novamente</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <FlatList
-        data={pokemons}
-        keyExtractor={keyExtractor}
-        numColumns={NUM_COLUMNS}
-        renderItem={renderItem}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingBottom: insets.bottom + Spacing.four },
-        ]}
-        // ── Infinite scroll ──
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.5}
-        // ── Performance ──
-        removeClippedSubviews
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        // ── Footer e empty ──
-        ListFooterComponent={
-          <ListFooter
-            isFetchingNextPage={isFetchingNextPage}
-            hasNextPage={hasNextPage}
-            total={totalCount}
-          />
-        }
-        ListEmptyComponent={
-          <View style={styles.center}>
-            <Text style={[styles.stateText, { color: theme.textSecondary }]}>
-              Nenhum Pokémon encontrado.
-            </Text>
-          </View>
-        }
-      />
+      {/* ── Barra de Pesquisa fixa no topo ── */}
+      <View style={styles.header}>
+        <SearchBar
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+          placeholder="Pesquisar por nome ou ID..."
+          onClear={() => setSearchTerm('')}
+        />
+      </View>
+
+      {/* ── Estado: carregando a primeira vez ── */}
+      {isLoading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={theme.textSecondary} />
+          <Text style={[styles.stateText, { color: theme.textSecondary }]}>
+            {isSearching ? 'Buscando Pokémon...' : 'Carregando Pokémon...'}
+          </Text>
+        </View>
+      ) : error ? (
+        /* ── Estado: erro ── */
+        <View style={styles.center}>
+          <Text style={[styles.stateText, { color: theme.text }]}>
+            Ops! Não foi possível carregar.
+          </Text>
+          <Text style={[styles.stateSubtext, { color: theme.textSecondary }]}>
+            {error.message}
+          </Text>
+          {!isSearching && (
+            <Pressable
+              onPress={() => refetch()}
+              style={({ pressed }) => [
+                styles.retryButton,
+                { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
+              ]}
+            >
+              <Text style={[styles.retryText, { color: theme.text }]}>Tentar novamente</Text>
+            </Pressable>
+          )}
+        </View>
+      ) : (
+        /* ── FlatList Principal ── */
+        <FlatList
+          data={activePokemons}
+          keyExtractor={keyExtractor}
+          numColumns={NUM_COLUMNS}
+          renderItem={renderItem}
+          columnWrapperStyle={styles.columnWrapper}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: insets.bottom + Spacing.four },
+          ]}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.5}
+          removeClippedSubviews
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          ListFooterComponent={
+            <ListFooter
+              isFetchingNextPage={listQuery.isFetchingNextPage}
+              hasNextPage={listQuery.hasNextPage}
+              total={listQuery.totalCount}
+              isSearching={isSearching}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.center}>
+              <Text style={[styles.stateText, { color: theme.textSecondary }]}>
+                {isSearching
+                  ? `Nenhum Pokémon "${searchTerm}" encontrado.`
+                  : 'Nenhum Pokémon encontrado.'}
+              </Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -165,6 +182,9 @@ export default function PokedexScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  header: {
+    paddingVertical: Spacing.two,
   },
   center: {
     flex: 1,
