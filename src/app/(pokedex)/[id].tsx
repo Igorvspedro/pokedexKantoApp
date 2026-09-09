@@ -1,8 +1,9 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PokemonDetailsSkeleton } from '@/components/pokemon/PokemonDetailsSkeleton';
 import { PokemonStats } from '@/components/pokemon/PokemonStats';
 import { PokemonTypeBadge } from '@/components/pokemon/PokemonTypeBadge';
 import { Spacing } from '@/constants/theme';
@@ -26,11 +27,7 @@ export default function PokemonDetailsScreen() {
   // ── Estados de Carregamento e Erro ──
 
   if (isLoading) {
-    return (
-      <View style={[styles.center, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.textSecondary} />
-      </View>
-    );
+    return <PokemonDetailsSkeleton />;
   }
 
   if (error || !pokemon) {

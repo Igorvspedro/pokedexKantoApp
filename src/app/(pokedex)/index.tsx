@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PokemonCard } from '@/components/pokemon/PokemonCard';
+import { PokemonCardSkeleton } from '@/components/pokemon/PokemonCardSkeleton';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { Spacing } from '@/constants/theme';
 import { PokemonListEntry, usePokemons } from '@/hooks/pokemon/use-pokemons';
@@ -112,11 +113,13 @@ export default function PokedexScreen() {
 
       {/* ── Estado: carregando a primeira vez ── */}
       {isLoading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={theme.textSecondary} />
-          <Text style={[styles.stateText, { color: theme.textSecondary }]}>
-            {isSearching ? 'Buscando Pokémon...' : 'Carregando Pokémon...'}
-          </Text>
+        // Grid de 10 skeletons que espelha o layout do FlatList
+        <View style={styles.skeletonGrid}>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <View key={i} style={styles.skeletonCell}>
+              <PokemonCardSkeleton />
+            </View>
+          ))}
         </View>
       ) : error ? (
         /* ── Estado: erro ── */
@@ -224,10 +227,19 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingVertical: Spacing.three,
-    alignItems: 'center',
+    alignItems: 'center' as const,
   },
   endText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '500' as const,
+  },
+  skeletonGrid: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    padding: Spacing.two,
+    gap: Spacing.two,
+  },
+  skeletonCell: {
+    width: '47%',
   },
 });
