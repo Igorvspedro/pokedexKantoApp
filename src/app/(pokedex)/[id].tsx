@@ -8,6 +8,7 @@ import { PokemonStats } from '@/components/pokemon/PokemonStats';
 import { PokemonTypeBadge } from '@/components/pokemon/PokemonTypeBadge';
 import { Spacing } from '@/constants/theme';
 import { usePokemonDetails } from '@/hooks/pokemon/use-pokemon-details';
+import { useIsWide } from '@/hooks/use-columns';
 import { useTheme } from '@/hooks/use-theme';
 import {
   formatHeight,
@@ -22,10 +23,9 @@ export default function PokemonDetailsScreen() {
   const { id } = useLocalSearchParams();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const isWide = useIsWide();
 
   const { pokemon, isLoading, error, refetch } = usePokemonDetails(id as string);
-
-  // ── Estados de Carregamento e Erro ──
 
   if (isLoading) {
     return <PokemonDetailsSkeleton />;
@@ -72,70 +72,83 @@ export default function PokemonDetailsScreen() {
         }}
       />
 
-      {/* ── Imagem Principal (hero com cor do tipo) ── */}
-      <View style={[styles.imageContainer, { backgroundColor: typeColor }]}>
-        <Image
-          source={{ uri: artworkUrl }}
-          style={styles.image}
-          contentFit="contain"
-          transition={300}
-        />
-      </View>
+      {/* ── Corpo: stacked (mobile) ou side-by-side (tablet/web) ── */}
+      <View style={[styles.body, isWide && styles.bodyWide]}>
 
-      <View style={styles.content}>
-        {/* ── Título ── */}
-        <View style={styles.header}>
-          <Text style={[styles.idText, { color: theme.textSecondary }]}>
-            {formatPokemonId(pokemon.id)}
-          </Text>
-          <Text style={[styles.nameText, { color: theme.text }]}>
-            {formatPokemonName(pokemon.name)}
-          </Text>
+        {/* Coluna da imagem */}
+        <View
+          style={[
+            styles.imageContainer,
+            { backgroundColor: typeColor },
+            isWide && styles.imageContainerWide,
+          ]}
+        >
+          <Image
+            source={{ uri: artworkUrl }}
+            style={styles.image}
+            contentFit="contain"
+            transition={300}
+          />
         </View>
 
-        {/* ── Tipos ── */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Tipos</Text>
-          <View style={styles.row}>
-            {pokemon.types.map((t) => (
-              <PokemonTypeBadge key={t.type.name} type={t.type.name} />
+        {/* Coluna de informações */}
+        <View style={[styles.content, isWide && styles.contentWide]}>
+          {/* ── Título ── */}
+          <View style={styles.header}>
+            <Text style={[styles.idText, { color: theme.textSecondary }]}>
+              {formatPokemonId(pokemon.id)}
+            </Text>
+            <Text style={[styles.nameText, { color: theme.text }]}>
+              {formatPokemonName(pokemon.name)}
+            </Text>
+          </View>
+
+          {/* ── Tipos ── */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Tipos</Text>
+            <View style={styles.row}>
+              {pokemon.types.map((t) => (
+                <PokemonTypeBadge key={t.type.name} type={t.type.name} />
+              ))}
+            </View>
+          </View>
+
+          {/* ── Dimensões ── */}
+          <View style={styles.rowCentered}>
+            <View style={[styles.infoCard, { backgroundColor: theme.backgroundElement }]}>
+              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Peso</Text>
+              <Text style={[styles.infoValue, { color: theme.text }]}>
+                {formatWeight(pokemon.weight)}
+              </Text>
+            </View>
+            <View style={[styles.infoCard, { backgroundColor: theme.backgroundElement }]}>
+              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Altura</Text>
+              <Text style={[styles.infoValue, { color: theme.text }]}>
+                {formatHeight(pokemon.height)}
+              </Text>
+            </View>
+          </View>
+
+          {/* ── Habilidades ── */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Habilidades</Text>
+            {pokemon.abilities.map((a) => (
+              <Text key={a.ability.name} style={[styles.abilityText, { color: theme.text }]}>
+                • {formatPokemonName(a.ability.name)} {a.is_hidden && '(Oculta)'}
+              </Text>
             ))}
           </View>
-        </View>
 
-        {/* ── Dimensões ── */}
-        <View style={styles.rowCentered}>
-          <View style={[styles.infoCard, { backgroundColor: theme.backgroundElement }]}>
-            <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Peso</Text>
-            <Text style={[styles.infoValue, { color: theme.text }]}>
-              {formatWeight(pokemon.weight)}
+          {/* ── Estatísticas ── */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+              Estatísticas Base
             </Text>
+            <PokemonStats
+              stats={pokemon.stats}
+              primaryType={primaryType}
+            />
           </View>
-          <View style={[styles.infoCard, { backgroundColor: theme.backgroundElement }]}>
-            <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Altura</Text>
-            <Text style={[styles.infoValue, { color: theme.text }]}>
-              {formatHeight(pokemon.height)}
-            </Text>
-          </View>
-        </View>
-
-        {/* ── Habilidades ── */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Habilidades</Text>
-          {pokemon.abilities.map((a) => (
-            <Text key={a.ability.name} style={[styles.abilityText, { color: theme.text }]}>
-              • {formatPokemonName(a.ability.name)} {a.is_hidden && '(Oculta)'}
-            </Text>
-          ))}
-        </View>
-
-        {/* ── Estatísticas ── */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Estatísticas Base</Text>
-          <PokemonStats
-            stats={pokemon.stats}
-            primaryType={pokemon.types[0]?.type.name || 'normal'}
-          />
         </View>
       </View>
     </ScrollView>
@@ -155,6 +168,15 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.two,
   },
+  // ── Layout de corpo ──
+  body: {
+    flexDirection: 'column',
+  },
+  bodyWide: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  // ── Imagem ──
   imageContainer: {
     width: '100%',
     aspectRatio: 1.2,
@@ -164,13 +186,25 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: Spacing.five,
     padding: Spacing.four,
   },
+  imageContainerWide: {
+    width: '40%',
+    aspectRatio: 1,
+    borderRadius: 0,
+    borderBottomRightRadius: Spacing.five,
+    borderTopRightRadius: Spacing.five,
+    position: 'sticky' as never, // mantém a imagem no topo ao scrollar (web)
+  },
   image: {
     width: '80%',
     height: '80%',
   },
+  // ── Conteúdo ──
   content: {
     padding: Spacing.four,
     gap: Spacing.four,
+  },
+  contentWide: {
+    flex: 1,
   },
   header: {
     alignItems: 'center',
@@ -201,11 +235,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.three,
   },
-  badge: {
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.one,
-    borderRadius: Spacing.three,
-  },
   infoCard: {
     flex: 1,
     alignItems: 'center',
@@ -223,21 +252,7 @@ const styles = StyleSheet.create({
   abilityText: {
     fontSize: 16,
   },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  statLabel: {
-    fontSize: 14,
-    flex: 1,
-  },
-  statValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    width: 40,
-    textAlign: 'right',
-  },
+  // ── Estados ──
   stateText: {
     fontSize: 18,
     fontWeight: '500',

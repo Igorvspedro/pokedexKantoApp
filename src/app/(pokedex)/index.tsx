@@ -17,10 +17,10 @@ import { SearchBar } from '@/components/ui/SearchBar';
 import { Spacing } from '@/constants/theme';
 import { PokemonListEntry, usePokemons } from '@/hooks/pokemon/use-pokemons';
 import { useSearchPokemons } from '@/hooks/pokemon/use-search-pokemons';
+import { useColumns } from '@/hooks/use-columns';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useTheme } from '@/hooks/use-theme';
 
-const NUM_COLUMNS = 2;
 
 // ─── Rodapé da lista ──────────────────────────────────────────────────────────
 
@@ -62,6 +62,7 @@ function ListFooter({ isFetchingNextPage, hasNextPage, total, isSearching }: Lis
 export default function PokedexScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const numColumns = useColumns();
   const router = useRouter();
 
   // ── Pesquisa ──
@@ -145,9 +146,10 @@ export default function PokedexScreen() {
       ) : (
         /* ── FlatList Principal ── */
         <FlatList
+          key={numColumns}
           data={activePokemons}
           keyExtractor={keyExtractor}
-          numColumns={NUM_COLUMNS}
+          numColumns={numColumns}
           renderItem={renderItem}
           columnWrapperStyle={styles.columnWrapper}
           contentContainerStyle={[
