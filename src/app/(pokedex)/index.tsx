@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import {
   ActivityIndicator,
   FlatList,
@@ -9,36 +8,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PokemonCard } from '@/components/pokemon/PokemonCard';
 import { Colors, Spacing } from '@/constants/theme';
-import { PokemonListEntry, usePokemons } from '@/hooks/pokemon/use-pokemons';
+import { usePokemons } from '@/hooks/pokemon/use-pokemons';
 import { useTheme } from '@/hooks/use-theme';
-import { formatPokemonId, formatPokemonName, getOfficialArtworkUrl } from '@/utils/pokemon';
 
 const NUM_COLUMNS = 2;
-
-// ─── Componente de item da lista (será extraído em Etapa 7) ───────────────────
-
-function PokemonListItem({ item }: { item: PokemonListEntry }) {
-  const theme = useTheme();
-  const artworkUrl = getOfficialArtworkUrl(item.id);
-
-  return (
-    <View style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
-      <Image
-        source={{ uri: artworkUrl }}
-        style={styles.pokemonImage}
-        contentFit="contain"
-        transition={200}
-      />
-      <Text style={[styles.pokemonId, { color: theme.textSecondary }]}>
-        {formatPokemonId(item.id)}
-      </Text>
-      <Text style={[styles.pokemonName, { color: theme.text }]} numberOfLines={1}>
-        {formatPokemonName(item.name)}
-      </Text>
-    </View>
-  );
-}
 
 // ─── Rodapé da lista ──────────────────────────────────────────────────────────
 
@@ -100,7 +75,13 @@ export default function PokedexScreen() {
         data={pokemons}
         keyExtractor={(item) => String(item.id)}
         numColumns={NUM_COLUMNS}
-        renderItem={({ item }) => <PokemonListItem item={item} />}
+        renderItem={({ item }) => (
+          <PokemonCard
+            id={item.id}
+            name={item.name}
+          // onPress será conectado à navegação na Etapa 10
+          />
+        )}
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={[
           styles.listContent,
@@ -145,29 +126,6 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     paddingHorizontal: Spacing.two,
   },
-  // Card (será movido para PokemonCard na Etapa 7)
-  card: {
-    flex: 1,
-    alignItems: 'center',
-    borderRadius: Spacing.three,
-    padding: Spacing.two,
-    marginBottom: Spacing.two,
-    gap: Spacing.one,
-  },
-  pokemonImage: {
-    width: '100%',
-    aspectRatio: 1,
-  },
-  pokemonId: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  pokemonName: {
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  // Estados
   stateText: {
     fontSize: 16,
     fontWeight: '500',
