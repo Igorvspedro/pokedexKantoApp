@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { useState } from 'react';
-import { useColorScheme } from 'react-native';
+import { Platform, useColorScheme } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ClassSelectModal } from '@/components/filters/ClassSelectModal';
 import { RegionSelectModal } from '@/components/filters/RegionSelectModal';
@@ -16,6 +17,13 @@ export default function AppTabs() {
   const [typeModalVisible, setTypeModalVisible] = useState(false);
   const [classModalVisible, setClassModalVisible] = useState(false);
 
+  const insets = useSafeAreaInsets();
+
+  // No Android com botões virtuais clássicos, o insets.bottom reflete a altura deles
+  // Somamos o padding fixo (8) ao inset de segurança se existir (no iOS e Android).
+  const paddingB = Platform.OS === 'android' ? Math.max(8, insets.bottom) : insets.bottom || 8;
+  const tabHeight = 60 + paddingB - 8; // Altura base (60) + o padding ajustado
+
   return (
     <>
       <Tabs
@@ -25,8 +33,8 @@ export default function AppTabs() {
             backgroundColor: colors.background,
             borderTopColor: colors.backgroundElement,
             elevation: 0,
-            height: 60,
-            paddingBottom: 8,
+            height: tabHeight,
+            paddingBottom: paddingB,
           },
           tabBarActiveTintColor: '#E3350D',
           tabBarInactiveTintColor: colors.textSecondary,
