@@ -1,7 +1,7 @@
-import { SymbolView } from 'expo-symbols';
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { CartoonBorder, PokemonRed, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export interface SearchBarProps {
@@ -18,13 +18,22 @@ export function SearchBar({
   onClear,
 }: SearchBarProps) {
   const theme = useTheme();
+  const hasFocus = value.length > 0;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.backgroundElement }]}>
-      <SymbolView
-        name={{ ios: 'magnifyingglass', web: 'search', android: 'search' }}
-        tintColor={theme.textSecondary}
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.backgroundElement,
+          borderColor: hasFocus ? PokemonRed : theme.border,
+        },
+      ]}
+    >
+      <Ionicons
+        name="search"
         size={18}
+        color={hasFocus ? PokemonRed : theme.textSecondary}
       />
       <TextInput
         style={[styles.input, { color: theme.text }]}
@@ -36,12 +45,8 @@ export function SearchBar({
         autoCorrect={false}
       />
       {value.length > 0 && onClear && (
-        <Pressable onPress={onClear} style={styles.clearButton} hitSlop={10}>
-          <SymbolView
-            name={{ ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel' }}
-            tintColor={theme.textSecondary}
-            size={18}
-          />
+        <Pressable onPress={onClear} hitSlop={10}>
+          <Ionicons name="close-circle" size={20} color={theme.textSecondary} />
         </Pressable>
       )}
     </View>
@@ -53,16 +58,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.three,
+    paddingVertical: 10,
+    borderRadius: CartoonBorder.radiusRound,
+    borderWidth: CartoonBorder.width,
     gap: Spacing.two,
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     padding: 0,
-  },
-  clearButton: {
-    padding: 2,
+    fontWeight: '500',
   },
 });

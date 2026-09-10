@@ -7,22 +7,29 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
+export const PokemonRed = '#E3350D';
+export const PokemonRedDark = '#C12D0B';
+
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: '#1A1A2E',
+    background: '#F4F4F8',
+    backgroundElement: '#FFFFFF',
+    backgroundSelected: '#FDECEA',
+    textSecondary: '#7B7FA6',
+    border: '#E0E0F0',
+    accent: PokemonRed,
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: '#F0F0FF',
+    background: '#0F0F1A',
+    backgroundElement: '#1C1C2E',
+    backgroundSelected: '#2A1F2E',
+    textSecondary: '#8080AA',
+    border: '#2A2A40',
+    accent: PokemonRed,
   },
-} as const;
+};
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
@@ -60,6 +67,17 @@ export const Spacing = {
   five: 32,
   six: 64,
 } as const;
+
+// ─── Design Tokens Cartoon ────────────────────────────────────────────────────
+export const CartoonBorder = {
+  width: 2.5, // borda bold estilo quadrinhos
+  widthThick: 3.5, // borda de destaque (cards, badges)
+  radius: 16, // arredondamento standard
+  radiusLarge: 24, // arredondamento grande (cards, modais)
+  radiusRound: 999, // pílula (tipo badges)
+  color: 'rgba(0,0,0,0.08)', // borda sutil no light
+  colorDark: 'rgba(255,255,255,0.06)', // borda sutil no dark
+};
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;

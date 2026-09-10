@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { CartoonBorder, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { PokemonStatSlot, PokemonTypeName } from '@/types/pokemon';
 import { getPokemonTypeColor } from '@/utils/pokemon-colors';
@@ -10,8 +10,16 @@ interface PokemonStatsProps {
   primaryType: PokemonTypeName | string;
 }
 
-// Em jogos de Pokémon da série principal, o teto real de status base é 255.
 const STAT_MAX = 255;
+
+const STAT_LABELS: Record<string, string> = {
+  hp: 'HP',
+  attack: 'ATK',
+  defense: 'DEF',
+  'special-attack': 'SP.ATK',
+  'special-defense': 'SP.DEF',
+  speed: 'SPD',
+};
 
 export function PokemonStats({ stats, primaryType }: PokemonStatsProps) {
   const theme = useTheme();
@@ -21,35 +29,47 @@ export function PokemonStats({ stats, primaryType }: PokemonStatsProps) {
     <View style={styles.container}>
       {stats.map((s) => {
         const value = s.base_stat;
-        // Limita a 100% para evitar overflow visual caso algo bizarro retorne na API
         const percentage = Math.min((value / STAT_MAX) * 100, 100);
+        const labelText = STAT_LABELS[s.stat.name] ?? s.stat.name.toUpperCase();
 
-        // Nomenclatura tratada ("special-attack" -> "SP ATTACK") pra caber bonitozinho
-        const labelText = s.stat.name
-          .replace('special-attack', 'sp. attack')
-          .replace('special-defense', 'sp. defense')
-          .toUpperCase();
+        // Cor da barra varia com intensidade do stat
+        const barAlpha = 0.5 + (percentage / 100) * 0.5;
 
         return (
           <View key={s.stat.name} style={styles.row}>
-            {/* Rótulo e Valor lado esquerdo */}
-            <View style={styles.infoCol}>
-              <Text style={[styles.label, { color: theme.textSecondary }]}>
-                {labelText}
-              </Text>
-              <Text style={[styles.value, { color: theme.text }]}>
-                {String(value).padStart(3, '0')}
-              </Text>
-            </View>
+            {/* Label compacto */}
+            <Text style={[styles.label, { color: theme.textSecondary }]}>
+              {labelText}
+            </Text>
 
-            {/* Barra Visual lado direito */}
-            <View style={[styles.barBackground, { backgroundColor: theme.backgroundElement }]}>
+            {/* Valor numérico */}
+            <Text style={[styles.value, { color: theme.text }]}>
+              {String(value).padStart(3, '0')}
+            </Text>
+
+            {/* Trilho da barra */}
+            <View style={[styles.barTrack, { backgroundColor: theme.border ?? theme.backgroundElement }]}>
+              {/* Preenchimento */}
               <View
                 style={[
                   styles.barFill,
-                  { width: `${percentage}%`, backgroundColor: barColor },
+                  {
+                    width: `${percentage}%` as any,
+                    backgroundColor: barColor,
+                    opacity: barAlpha,
+                  },
                 ]}
               />
+              {/* Segmentos decorativos cartoon */}
+              {[25, 50, 75].map((tick) => (
+                <View
+                  key={tick}
+                  style={[
+                    styles.tick,
+                    { left: `${tick}%` as any, backgroundColor: theme.background },
+                  ]}
+                />
+              ))}
             </View>
           </View>
         );
@@ -65,31 +85,41 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.three,
-  },
-  infoCol: {
-    flexDirection: 'row',
-    width: 140, // fixado para alinhar perfeitamente todas as barras
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    gap: Spacing.two,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '600',
+    width: 60,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   value: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    width: 36,
+    fontSize: 13,
+    fontWeight: '800',
     textAlign: 'right',
   },
-  barBackground: {
+  barTrack: {
     flex: 1,
-    height: 6,
-    borderRadius: 3,
+    height: 10,
+    borderRadius: CartoonBorder.radiusRound,
     overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.07)',
   },
   barFill: {
-    height: '100%',
-    borderRadius: 3,
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    borderRadius: CartoonBorder.radiusRound,
+  },
+  tick: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 1.5,
+    opacity: 0.4,
   },
 });

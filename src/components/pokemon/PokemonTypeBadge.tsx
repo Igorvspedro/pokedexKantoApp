@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { CartoonBorder, Spacing } from '@/constants/theme';
 import { PokemonTypeName } from '@/types/pokemon';
 import { getPokemonTypeColor } from '@/utils/pokemon-colors';
 
@@ -10,9 +9,6 @@ interface PokemonTypeBadgeProps {
 }
 
 export function PokemonTypeBadge({ type }: PokemonTypeBadgeProps) {
-  const theme = useTheme();
-  // Se estivermos no modo dark, as vezes as cores bright podem ofuscar, 
-  // mas aqui decidimos aplicar direto o hex padrão pra manter identidade clássica.
   const backgroundColor = getPokemonTypeColor(type);
 
   return (
@@ -25,18 +21,27 @@ export function PokemonTypeBadge({ type }: PokemonTypeBadgeProps) {
 const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.one,
-    borderRadius: Spacing.three,
+    paddingVertical: 6,
+    borderRadius: CartoonBorder.radiusRound,
     alignItems: 'center',
     justifyContent: 'center',
-    // Alguma sombra ou opacidade poderia ir aqui
+    // Borda branca cartoon nos badges de tipo
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.45)',
+    // Sombra suave do badge
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 3,
   },
   text: {
-    color: '#FFFFFF', // Texto branco sempre em fundos de tipo por constraste
-    fontSize: 12,
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadowRadius: 3,
   },
 });

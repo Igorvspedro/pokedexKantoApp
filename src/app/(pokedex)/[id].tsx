@@ -1,12 +1,12 @@
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PokemonDetailsSkeleton } from '@/components/pokemon/PokemonDetailsSkeleton';
 import { PokemonStats } from '@/components/pokemon/PokemonStats';
 import { PokemonTypeBadge } from '@/components/pokemon/PokemonTypeBadge';
-import { Spacing } from '@/constants/theme';
+import { CartoonBorder, PokemonRed, Spacing } from '@/constants/theme';
 import { usePokemonDetails } from '@/hooks/pokemon/use-pokemon-details';
 import { useIsWide } from '@/hooks/use-columns';
 import { useTheme } from '@/hooks/use-theme';
@@ -34,24 +34,20 @@ export default function PokemonDetailsScreen() {
   if (error || !pokemon) {
     return (
       <View style={[styles.center, { backgroundColor: theme.background }]}>
-        <Text style={[styles.stateText, { color: theme.text }]}>Não foi possível carregar</Text>
+        <Text style={[styles.stateText, { color: theme.text }]}>Ops! Algo deu errado.</Text>
         <Text style={[styles.stateSubtext, { color: theme.textSecondary }]}>
           {error?.message || 'Dados não encontrados'}
         </Text>
-        <Pressable
+        <TouchableOpacity
           onPress={() => refetch()}
-          style={({ pressed }) => [
-            styles.retryButton,
-            { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
-          ]}
+          style={[styles.retryButton, { backgroundColor: PokemonRed }]}
+          activeOpacity={0.8}
         >
-          <Text style={[styles.retryText, { color: theme.text }]}>Tentar novamente</Text>
-        </Pressable>
+          <Text style={styles.retryText}>Tentar novamente</Text>
+        </TouchableOpacity>
       </View>
     );
   }
-
-  // ── Renderização Principal ──
 
   const artworkUrl = getOfficialArtworkUrl(pokemon.id);
   const primaryType = pokemon.types[0]?.type.name ?? 'normal';
@@ -62,7 +58,6 @@ export default function PokemonDetailsScreen() {
       style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={{ paddingBottom: insets.bottom + Spacing.four }}
     >
-      {/* Colore o header da Stack Navigator com o tipo do Pokémon */}
       <Stack.Screen
         options={{
           headerStyle: { backgroundColor: typeColor },
@@ -75,79 +70,76 @@ export default function PokemonDetailsScreen() {
       {/* ── Corpo: stacked (mobile) ou side-by-side (tablet/web) ── */}
       <View style={[styles.body, isWide && styles.bodyWide]}>
 
-        {/* Coluna da imagem */}
-        <View
-          style={[
-            styles.imageContainer,
-            { backgroundColor: typeColor },
-            isWide && styles.imageContainerWide,
-          ]}
-        >
+        {/* ── Hero: fundo com cor do tipo + artwork ── */}
+        <View style={[styles.heroContainer, { backgroundColor: typeColor }, isWide && styles.heroContainerWide]}>
+          {/* Círculos decorativos (estilo arte de trainer card anime) */}
+          <View style={[styles.deco, styles.decoTopLeft, { backgroundColor: 'rgba(255,255,255,0.08)' }]} />
+          <View style={[styles.deco, styles.decoBottomRight, { backgroundColor: 'rgba(255,255,255,0.06)' }]} />
+
+          <Text style={styles.heroId}>{formatPokemonId(pokemon.id)}</Text>
           <Image
             source={{ uri: artworkUrl }}
-            style={styles.image}
+            style={styles.heroImage}
             contentFit="contain"
             transition={300}
           />
         </View>
 
-        {/* Coluna de informações */}
-        <View style={[styles.content, isWide && styles.contentWide]}>
-          {/* ── Título ── */}
-          <View style={styles.header}>
-            <Text style={[styles.idText, { color: theme.textSecondary }]}>
-              {formatPokemonId(pokemon.id)}
-            </Text>
-            <Text style={[styles.nameText, { color: theme.text }]}>
+        {/* ── Card de Conteúdo ── */}
+        <View style={[styles.contentCard, { backgroundColor: theme.backgroundElement, borderColor: theme.border }, isWide && styles.contentCardWide]}>
+
+          {/* Nome + Tipos */}
+          <View style={styles.nameSection}>
+            <Text style={[styles.pokemonName, { color: theme.text }]}>
               {formatPokemonName(pokemon.name)}
             </Text>
-          </View>
-
-          {/* ── Tipos ── */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Tipos</Text>
-            <View style={styles.row}>
+            <View style={styles.typeRow}>
               {pokemon.types.map((t) => (
                 <PokemonTypeBadge key={t.type.name} type={t.type.name} />
               ))}
             </View>
           </View>
 
-          {/* ── Dimensões ── */}
-          <View style={styles.rowCentered}>
-            <View style={[styles.infoCard, { backgroundColor: theme.backgroundElement }]}>
-              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Peso</Text>
-              <Text style={[styles.infoValue, { color: theme.text }]}>
+          {/* Divisor */}
+          <View style={[styles.divider, { backgroundColor: theme.border ?? theme.backgroundElement }]} />
+
+          {/* Medidas */}
+          <View style={styles.measureRow}>
+            <View style={[styles.measureCard, { backgroundColor: theme.background, borderColor: theme.border }]}>
+              <Text style={[styles.measureLabel, { color: theme.textSecondary }]}>⚖️ Peso</Text>
+              <Text style={[styles.measureValue, { color: theme.text }]}>
                 {formatWeight(pokemon.weight)}
               </Text>
             </View>
-            <View style={[styles.infoCard, { backgroundColor: theme.backgroundElement }]}>
-              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Altura</Text>
-              <Text style={[styles.infoValue, { color: theme.text }]}>
+            <View style={[styles.measureCard, { backgroundColor: theme.background, borderColor: theme.border }]}>
+              <Text style={[styles.measureLabel, { color: theme.textSecondary }]}>📏 Altura</Text>
+              <Text style={[styles.measureValue, { color: theme.text }]}>
                 {formatHeight(pokemon.height)}
               </Text>
             </View>
           </View>
 
-          {/* ── Habilidades ── */}
+          {/* Habilidades */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Habilidades</Text>
-            {pokemon.abilities.map((a) => (
-              <Text key={a.ability.name} style={[styles.abilityText, { color: theme.text }]}>
-                • {formatPokemonName(a.ability.name)} {a.is_hidden && '(Oculta)'}
-              </Text>
-            ))}
+            <Text style={[styles.sectionTitle, { color: PokemonRed }]}>⚡ Habilidades</Text>
+            <View style={styles.abilitiesRow}>
+              {pokemon.abilities.map((a) => (
+                <View key={a.ability.name} style={[styles.abilityChip, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                  <Text style={[styles.abilityText, { color: theme.text }]}>
+                    {formatPokemonName(a.ability.name)}
+                  </Text>
+                  {a.is_hidden && (
+                    <Text style={[styles.hiddenTag, { color: theme.textSecondary }]}>oculta</Text>
+                  )}
+                </View>
+              ))}
+            </View>
           </View>
 
-          {/* ── Estatísticas ── */}
+          {/* Stats */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-              Estatísticas Base
-            </Text>
-            <PokemonStats
-              stats={pokemon.stats}
-              primaryType={primaryType}
-            />
+            <Text style={[styles.sectionTitle, { color: PokemonRed }]}>📊 Estatísticas</Text>
+            <PokemonStats stats={pokemon.stats} primaryType={primaryType} />
           </View>
         </View>
       </View>
@@ -155,12 +147,8 @@ export default function PokemonDetailsScreen() {
   );
 }
 
-// ─── Estilos ──────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -168,106 +156,112 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.two,
   },
-  // ── Layout de corpo ──
-  body: {
-    flexDirection: 'column',
-  },
-  bodyWide: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  // ── Imagem ──
-  imageContainer: {
+  // ── Layout ──
+  body: { flexDirection: 'column' },
+  bodyWide: { flexDirection: 'row', alignItems: 'flex-start' },
+
+  // ── Hero ──
+  heroContainer: {
     width: '100%',
-    aspectRatio: 1.2,
+    minHeight: 240,
     alignItems: 'center',
-    justifyContent: 'center',
-    borderBottomLeftRadius: Spacing.five,
-    borderBottomRightRadius: Spacing.five,
+    justifyContent: 'flex-end',
     padding: Spacing.four,
+    paddingTop: Spacing.four,
+    overflow: 'hidden',
+    position: 'relative',
   },
-  imageContainerWide: {
+  heroContainerWide: {
     width: '40%',
-    aspectRatio: 1,
-    borderRadius: 0,
-    borderBottomRightRadius: Spacing.five,
-    borderTopRightRadius: Spacing.five,
-    position: 'sticky' as never, // mantém a imagem no topo ao scrollar (web)
+    minHeight: 380,
   },
-  image: {
-    width: '80%',
-    height: '80%',
+  heroId: {
+    position: 'absolute',
+    top: Spacing.three,
+    right: Spacing.three,
+    fontSize: 18,
+    fontWeight: '800',
+    color: 'rgba(255,255,255,0.5)',
+    letterSpacing: 1,
   },
-  // ── Conteúdo ──
-  content: {
-    padding: Spacing.four,
-    gap: Spacing.four,
+  heroImage: {
+    width: 200,
+    height: 200,
   },
-  contentWide: {
-    flex: 1,
+  deco: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
   },
-  header: {
-    alignItems: 'center',
-    gap: Spacing.one,
-  },
-  idText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  nameText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  section: {
-    gap: Spacing.two,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-  },
-  rowCentered: {
-    flexDirection: 'row',
-    gap: Spacing.three,
-  },
-  infoCard: {
-    flex: 1,
-    alignItems: 'center',
+  decoTopLeft: { top: -40, left: -40 },
+  decoBottomRight: { bottom: -30, right: -30 },
+
+  // ── Content Card ──
+  contentCard: {
+    margin: Spacing.three,
+    borderRadius: CartoonBorder.radiusLarge,
+    borderWidth: CartoonBorder.width,
     padding: Spacing.three,
-    borderRadius: Spacing.three,
+    gap: Spacing.three,
+    // Sombra suave
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  contentCardWide: { flex: 1 },
+
+  // ── Nome + Tipos ──
+  nameSection: { alignItems: 'center', gap: Spacing.two },
+  pokemonName: {
+    fontSize: 26,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  typeRow: { flexDirection: 'row', gap: Spacing.two },
+  divider: { height: 1.5, width: '100%', borderRadius: 1 },
+
+  // ── Medidas ──
+  measureRow: { flexDirection: 'row', gap: Spacing.two },
+  measureCard: {
+    flex: 1,
+    padding: Spacing.three,
+    borderRadius: CartoonBorder.radius,
+    borderWidth: CartoonBorder.width,
+    alignItems: 'center',
     gap: 4,
   },
-  infoLabel: {
-    fontSize: 12,
+  measureLabel: { fontSize: 12, fontWeight: '600' },
+  measureValue: { fontSize: 16, fontWeight: '800' },
+
+  // ── Seção genérica ──
+  section: { gap: Spacing.two },
+  sectionTitle: { fontSize: 13, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+
+  // ── Habilidades ──
+  abilitiesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
+  abilityChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: 6,
+    borderRadius: CartoonBorder.radiusRound,
+    borderWidth: CartoonBorder.width,
   },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  abilityText: {
-    fontSize: 16,
-  },
+  abilityText: { fontSize: 13, fontWeight: '700' },
+  hiddenTag: { fontSize: 10, fontWeight: '500', fontStyle: 'italic' },
+
   // ── Estados ──
-  stateText: {
-    fontSize: 18,
-    fontWeight: '500',
-  },
-  stateSubtext: {
-    fontSize: 14,
-  },
+  stateText: { fontSize: 18, fontWeight: '700' },
+  stateSubtext: { fontSize: 14, textAlign: 'center' },
   retryButton: {
-    marginTop: Spacing.three,
+    marginTop: Spacing.two,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
-    borderRadius: Spacing.two,
+    borderRadius: CartoonBorder.radiusRound,
   },
-  retryText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
+  retryText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 });
